@@ -1,5 +1,3 @@
-# Ignore PDF notes (specific file in your case)
-Regen_Course2Notes.pdf
 
 # Ignore common Python generated files and directories
 *.pyc
