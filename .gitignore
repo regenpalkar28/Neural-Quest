@@ -1,0 +1,33 @@
+# Ignore PDF notes (specific file in your case)
+Regen_Course2Notes.pdf
+
+# Ignore common Python generated files and directories
+*.pyc
+*.pyd
+*.so
+__pycache__/
+.pytest_cache/
+*.whl
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Ignore virtual environments
+venv/
+env/
+.env/
+
+# Ignore IDE/OS specific files
+.vscode/    # VS Code workspace settings (optional, if you want to share them, remove this line)
+.DS_Store   # macOS specific
+Thumbs.db   # Windows specific
+
+distutils-precedence.pth
+numpy-2.1.3-cp311-win_amd64.whl
+six.py
+typing_extensions.cpython-311.pyc
+# Carefully consider if __init__.py and override.py are project source or temp
+# If they are temporary/unwanted from dependencies:
+# __init__.py
+# override.py
