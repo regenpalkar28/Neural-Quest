@@ -37,11 +37,11 @@ class Bot(Character):
         return "basic_attack"
     
 
-player_char = Player("Knight", health=1000, max_health=1000, attack_power=20, defense=3)
-bot_char = Bot("Ninja", health=950, max_health=950, attack_power=15, defense=3)
+player_char = Player("Knight", health=450, max_health=450, attack_power=30, defense=3)
+bot_char = Bot("Ninja", health=450, max_health=450, attack_power=24, defense=3)
 
 damage_texts = []
-player_img = pg.image.load('Combat/Images/Knight.png')
+player_img = pg.image.load('Combat/Images/knight.png')
 player_img = pg.transform.scale(player_img, (150, 150))
 player_rect = player_img.get_rect(topleft=(200, 250))
 
@@ -49,10 +49,10 @@ bot_img = pg.image.load('Combat/Images/Ninja.png')
 bot_img = pg.transform.scale(bot_img, (150, 150))
 bot_rect = bot_img.get_rect(topleft=(600, 250))
 
-player_attack_img = pg.image.load('Combat/Images/Knight_attack.png')
+player_attack_img = pg.image.load('Combat/Images/knight.png')
 player_attack_img = pg.transform.scale(player_attack_img, (150, 150))
 
-bot_attack_img = pg.image.load('Combat/Images/Ninja_attack.png')
+bot_attack_img = pg.image.load('Combat/Images/Ninja.png')
 bot_attack_img = pg.transform.scale(bot_attack_img, (150, 150))
 
 attack_anim = None
@@ -94,6 +94,7 @@ def draw_health(character, pos, size=(150, 20), is_player = True):
 
 roll_button = pg.Rect(450, 500, 150, 50)  
 button_color = (200, 255, 200) 
+hover_color = (150, 220, 150)
 button_text = font.render("Roll Dice?", True, (0,0,0))
 
 dice_number = None  
@@ -115,6 +116,12 @@ while True:
                 phase = "player_roll"
                 roll_start_time = pg.time.get_ticks()
     
+    mouse_pos = pg.mouse.get_pos()
+    if roll_button.collidepoint(mouse_pos):
+        current_color = hover_color
+    else:
+        current_color = button_color
+
     if phase == "player_wait":
         pass  
 
@@ -145,13 +152,7 @@ while True:
         end_pos = (player_rect.x + 50, player_rect.y)
         attack_anim = ["bot", start_pos, end_pos, pg.time.get_ticks(), 500, False]
         phase = "animating_attack"
-        if not player_char.has_not_been_defeated():
-            phase = "game_over"
-        else:
-            damage_done = max((bot_char.attack_power * (bot_dice_number+1)) - player_char.defense, 0)
-            player_char.take_damage(damage_done)
-            show_damage(damage_done, (player_rect.x + 50, player_rect.y - 20))
-            phase = "player_wait" if player_char.has_not_been_defeated() else "game_over"
+        
     elif phase == "game_over":
         if player_char.has_not_been_defeated():
             result_text = font.render("Player Wins!", True, (0, 255, 0))
@@ -160,21 +161,20 @@ while True:
         screen.blit(result_text, (400, 300))
         pg.display.update()
         pg.time.delay(3000)
-        pg.quit()
-        exit()
+        
 
     screen.fill((45, 54, 176)) 
 
     draw_health(player_char, (50, 50), is_player=True)
     draw_health(bot_char, (800, 50), is_player=False)
 
-    pg.draw.rect(screen, button_color, roll_button)
+    pg.draw.rect(screen, current_color, roll_button)
     screen.blit(button_text, (roll_button.x+5, roll_button.y+10))
     
     if dice_number is not None:
-        screen.blit(dice_images[dice_number], (470, 400))
+        screen.blit(dice_images[dice_number], (120, 400))
     if bot_dice_number is not None:
-        screen.blit(dice_images[bot_dice_number], (470, 100))
+        screen.blit(dice_images[bot_dice_number], (820, 400))
     current_time = pg.time.get_ticks()
 
     for dt in damage_texts[:]:  
