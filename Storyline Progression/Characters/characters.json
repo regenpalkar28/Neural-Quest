@@ -1,0 +1,57 @@
+[
+    {
+        "name": "Sir Aldric",
+        "character_id": "1",
+        "role": "castle guard stationed at the eastern tower",
+        "personality": "aggressive",
+        "appearance": {
+            "age": "38",
+            "gender": "male",
+            "expression": "stern"
+        }
+    },
+    {
+        "name": "Lady Miren",
+        "character_id": "2",
+        "role": "royal alchemist advising the queen on potions",
+        "personality": "helpful",
+        "appearance": {
+            "age": "29",
+            "gender": "female",
+            "expression": "focused"
+        }
+    },
+    {
+        "name": "Thorne",
+        "character_id": "3",
+        "role": "herbalist wandering the forest, providing remedies",
+        "personality": "gentle",
+        "appearance": {
+            "age": "55",
+            "gender": "male",
+            "expression": "warm"
+        }
+    },
+    {
+        "name": "Brom Ironhand",
+        "character_id": "4",
+        "role": "master blacksmith forging weapons for the kingdom",
+        "personality": "aggressive",
+        "appearance": {
+            "age": "45",
+            "gender": "male",
+            "expression": "determined"
+        }
+    },
+    {
+        "name": "Elder Harrow",
+        "character_id": "5",
+        "role": "royal chronicler recording the kingdom's histories",
+        "personality": "helpful",
+        "appearance": {
+            "age": "70",
+            "gender": "male",
+            "expression": "thoughtful"
+        }
+    }
+]
