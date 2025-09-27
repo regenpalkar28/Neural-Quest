@@ -101,18 +101,18 @@ dice_number = None
 rolling = False     
 roll_start_time = 0
 
-phase = "player_wait"
 bot_dice_number = None
 bot_roll_start_time = 0
 
-# MAIN LOOP
+phase = "player_wait"
+#MAIN LOOP
 while True:
     for events in pg.event.get():
         if events.type == pg.QUIT:
             pg.quit()
             exit()
         if events.type == pg.MOUSEBUTTONDOWN:
-            if roll_button.collidepoint(events.pos) and phase == "player_wait":
+            if phase == "player_wait":
                 phase = "player_roll"
                 roll_start_time = pg.time.get_ticks()
     
@@ -136,12 +136,12 @@ while True:
     elif phase == "player_attack":
         start_pos = player_rect.topleft
         end_pos = (bot_rect.x - 50, bot_rect.y)
-        attack_anim = ["player", start_pos, end_pos, pg.time.get_ticks(), 500, True]
+        attack_anim = ["player", start_pos, end_pos, pg.time.get_ticks(),True]
         phase = "animating_attack"
 
     elif phase == "bot_wait":
         elapsed = pg.time.get_ticks() - bot_roll_start_time
-        if elapsed >= 1000:
+        if elapsed >= 1500:
             bot_dice_number = random.randint(0, 5)
             phase = "bot_attack"
         else:
@@ -150,7 +150,7 @@ while True:
     elif phase == "bot_attack":
         start_pos = bot_rect.topleft
         end_pos = (player_rect.x + 50, player_rect.y)
-        attack_anim = ["bot", start_pos, end_pos, pg.time.get_ticks(), 500, False]
+        attack_anim = ["bot", start_pos, end_pos, pg.time.get_ticks(),False]
         phase = "animating_attack"
         
     elif phase == "game_over":
@@ -161,6 +161,8 @@ while True:
         screen.blit(result_text, (400, 300))
         pg.display.update()
         pg.time.delay(3000)
+        pg.quit()
+        exit()
         
 
     screen.fill((45, 54, 176)) 
@@ -185,10 +187,10 @@ while True:
     if attack_anim is not None:
         current_time = pg.time.get_ticks()
         elapsed = current_time - attack_anim[3]
-        t = min(elapsed / attack_anim[4], 1)
+        t = min(elapsed / 500, 1)
 
-        x = attack_anim[1][0] + (attack_anim[2][0] - attack_anim[1][0]) * t
-        y = attack_anim[1][1] + (attack_anim[2][1] - attack_anim[1][1]) * t
+        x = attack_anim[1][0] + (attack_anim[2][0] - attack_anim[1][0])*t
+        y = attack_anim[1][1] + (attack_anim[2][1] - attack_anim[1][1])*t
 
         if attack_anim[0] == "player":
             screen.blit(player_attack_img, (x, y))
@@ -199,13 +201,13 @@ while True:
 
         if t >= 1:
             if attack_anim[0] == "player":
-                damage_done = max((player_char.attack_power * (dice_number+1)) - bot_char.defense, 0)
+                damage_done = (player_char.attack_power * (dice_number+1)) - bot_char.defense
                 bot_char.take_damage(damage_done)
                 show_damage(damage_done, (bot_rect.x + 50, bot_rect.y - 20))
                 phase = "bot_wait" if bot_char.has_not_been_defeated() else "game_over"
                 bot_roll_start_time = pg.time.get_ticks()
             else:
-                damage_done = max((bot_char.attack_power * (bot_dice_number+1)) - player_char.defense, 0)
+                damage_done = (bot_char.attack_power * (bot_dice_number+1)) - player_char.defense
                 player_char.take_damage(damage_done)
                 show_damage(damage_done, (player_rect.x + 50, player_rect.y - 20))
                 phase = "player_wait" if player_char.has_not_been_defeated() else "game_over"
