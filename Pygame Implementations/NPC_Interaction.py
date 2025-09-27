@@ -76,7 +76,10 @@ def generate_dialogue(player_choice=None, current_question=None):
 def parse_dialogue(text: str):
     lines = text.strip().split("\n")
     question = lines[0].replace("Question:", "").strip()
-    options = [line.split(":",1)[1].strip() for line in lines[1:]]
+    options = []
+    for line in lines[1:]:
+        _, option = line.split(":", 1)
+        options.append(option.strip())
     return question, options
 
 font = pg.font.SysFont('timesnewroman', font_size)
@@ -92,7 +95,6 @@ def draw_text(surface, text, color, rect, font, line_height):
                 if font.size(word[:i])[0] > rect.width:
                     lines.append(current_line + word[:i-1])
                     word = word[i-1:]
-                    current_line = ""
                     break
         test_line = current_line + (" " if current_line else "") + word
         if font.size(test_line)[0] <= rect.width:
@@ -112,7 +114,6 @@ def draw_text(surface, text, color, rect, font, line_height):
         line_surface = font.render(line, True, color)
         surface.blit(line_surface, (rect.left, y))
         y += line_height
-
 
 def draw_dialogue(screen, question, options, step, npc_response=""):
     box_top = int(SCREEN_HEIGHT * 0.75)
