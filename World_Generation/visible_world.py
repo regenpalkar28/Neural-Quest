@@ -9,12 +9,12 @@ master_height, master_width = 12000, 12000
 window_size = 600
 screen_height, screen_width = window_size, window_size
 minimap_size = window_size*0.3
-bigpixel_size = 60  # Each "terrain pixel" is 120x120 screen pixels
-grid_size = 50   # Perlin noise grid size
+bigpixel_size = 60  
+noise_grid_size = 90  # Perlin noise grid size
 
-# Calculate how many big pixels we have
-bigpixel_height = master_height // bigpixel_size  # 100 bigpixels
-bigpixel_width = master_width // bigpixel_size    # 100 bigpixels
+
+bigpixel_height = master_height // bigpixel_size  # 200 bigpixels
+bigpixel_width = master_width // bigpixel_size    # 200 bigpixels
 
 visible_bp_x = int(screen_width*2  // bigpixel_size)   # number of bigpixels that fit horizontally
 visible_bp_y = int(screen_height*2 // bigpixel_size)  # number of bigpixels that fit vertically
@@ -37,7 +37,7 @@ def lerp(a,b,x):
     return a + x*(b-a)
 def fade(t):
     """ Smoothstep Interpolation. """
-    return  t * t * t * (t * (t * 6 - 15) + 10)
+    return  (6*(t**2) - 15*t + 10)*(t**3)
 
 for gx in range(bigpixel_width + 1):
     for gy in range(bigpixel_height + 1):
@@ -63,13 +63,13 @@ def perlin(bpx, bpy, grid_size):
     u, v = fade(dx), fade(dy)
     return lerp(lerp(dot00, dot10, u) , lerp(dot01, dot11, u), v)
 
-def octave_perlin(x, y, octaves=4, persistence=0.5):
+def octave_perlin(x, y, octaves=5, persistence=0.5):
     total = 0
     frequency = 1
     amplitude = 1
     max_value = 0
     for _ in range(octaves):
-        total += perlin(x * frequency, y * frequency, grid_size) * amplitude
+        total += perlin(x * frequency, y * frequency, noise_grid_size) * amplitude
         max_value += amplitude
         amplitude *= persistence
         frequency *= 2
@@ -78,7 +78,7 @@ def octave_perlin(x, y, octaves=4, persistence=0.5):
 for bpy in range(bigpixel_height):
   for bpx in range(bigpixel_width):
       scale = 3
-      noise_value = perlin(bpx*scale, bpy*scale, grid_size)
+      noise_value = octave_perlin(bpx*scale, bpy*scale)
       noise_map[bpy][bpx] = noise_value
       min_noise = min(min_noise, noise_value)
       max_noise = max(max_noise, noise_value)
