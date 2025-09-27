@@ -147,7 +147,6 @@ def storyline_updater(protagonist, mission, NPC):
         f.write(content)
 
 # MISSIONS
-missions_file = "missions.json"
 
 with open(storyline_file, "r", encoding="utf-8") as f:
     story_text = f.read()
@@ -168,7 +167,6 @@ def mission_prompt_constructor(protagonist, NPC, context=None):
     }
 
 def mission(protagonist, NPC, context, next_NPC=None):
-    # Generate base mission structure
     mission_obj = mission_prompt_constructor(protagonist, NPC, context)
     # has mission_title and mission_description
 
