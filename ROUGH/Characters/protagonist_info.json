@@ -1,0 +1,11 @@
+{
+    "name": "Roger",
+    "role": "Knight",
+    "appearance": {
+        "age": "20",
+        "gender": "Male",
+        "clothes": "gleaming, polished, emblazoned steel armor",
+        "weapon": "sharp, balanced sword, sturdy, reinforced shield",
+        "expression": "determined, resolute, fierce"
+    }
+}

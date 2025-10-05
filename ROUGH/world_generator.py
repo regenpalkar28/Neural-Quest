@@ -2,6 +2,7 @@ import math
 import random
 import numpy as np
 import os
+from PIL import Image
 
 master_dim = 12000
 win_size = 600
@@ -123,5 +124,51 @@ def generate_world_map():
     return world_map
 
 world_map = generate_world_map()
+upscaled_map = np.repeat(np.repeat(world_map, bp_size, axis=0), bp_size, axis=1)
+
 print(f"saving world map to: {os.path.join(os.getcwd(), 'world_map.npy')}")
-np.save('world_map.npy', world_map)
+np.save('world_map.npy', upscaled_map)
+
+TERRAIN_COLORS = np.array([
+    [27, 65, 125],       # OCEAN
+    [43, 95, 179],       # SHALLOW
+    [168, 163, 138],     # SAND
+    [137, 173, 101],     # PLAINS
+    [123, 140, 107],     # HIGHLAND_PLAINS
+    [77, 82, 72],        # MOUNTAIN
+    [201, 204, 198]      # MOUNTAIN_PEAK
+    ], dtype=np.uint8)
+
+tiles_folder = os.path.join(os.getcwd(), 'MAPTILES')
+TERRAIN_IMG = {
+    0: os.path.join(tiles_folder, 'OCEAN.png'),
+    1: os.path.join(tiles_folder, 'SHALLOW.png'),
+    2: os.path.join(tiles_folder, 'SAND.png'),
+    3: os.path.join(tiles_folder, 'PLAINS.png'),
+    4: os.path.join(tiles_folder, 'HIGHLAND_PLAINS.png'),
+    5: os.path.join(tiles_folder, 'MOUNTAIN.png'),
+    6: os.path.join(tiles_folder, 'MOUNTAIN_PEAK.png')
+    }    
+
+world_image = TERRAIN_COLORS[upscaled_map]
+world_img_file = Image.fromarray(world_image, "RGB")
+world_img_file.save("world_map.png")
+
+master_image = Image.new("RGB", (master_dim, master_dim))
+
+loaded_tiles = {}
+
+for terrain_id, file_path in TERRAIN_IMG.items():
+    loaded_tiles[terrain_id] = Image.open(file_path).convert("RGB")
+
+for y in range(bp_num):
+    for x in range(bp_num):
+        terrain_id = world_map[y,x]
+
+        tile_image = loaded_tiles.get(terrain_id)
+        paste_x = x*bp_size
+        paste_y = y*bp_size
+
+        master_image.paste(tile_image, (paste_x, paste_y))
+
+master_image.save("world_map_tiled.png")
