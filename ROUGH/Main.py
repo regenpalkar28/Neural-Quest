@@ -24,33 +24,38 @@ print("World Generated")
 # print("\n Removing Background Color..")
 # subprocess.run([venv_python, 'Prot_BG_remove.py'], check=True)
 
+# generating initial storyline 
+# subprocess.run([venv_python, 'InitialStoryline.py'], check=True)
+
+#generating character data
+# subprocess.run([venv_python, 'NPC_info.py'], check=True)
+# print("Generated character data")
+
+# generating character sprites
+# subprocess.run([venv_python, 'NPCSprites.py'], check=True)
+# print("Generated character Images")
+#keep the above uncommented to demonstrate a fresh image generation
+
+subprocess.run([venv_python, 'NPC_BG_remove.py'], check=True)
+
 master_dim = 12000
 win_size = 600
 bp_size = 60
 minimap_size = win_size*0.3     
 
 world_map_npy_path = os.path.join(os.getcwd(), 'world_map.npy')
-world_map_npy = np.load(world_map_npy_path)
-TERRAIN_COLORS = np.array([
-    [27, 65, 125],       # OCEAN
-    [43, 95, 179],       # SHALLOW
-    [168, 163, 138],     # SAND
-    [137, 173, 101],     # PLAINS
-    [123, 140, 107],     # HIGHLAND_PLAINS
-    [77, 82, 72],        # MOUNTAIN
-    [201, 204, 198]      # MOUNTAIN_PEAK
-    ], dtype=np.uint8)
+world_map_tid_npy = np.load(world_map_npy_path)
 
-world_map_img = TERRAIN_COLORS[world_map_npy]
+world_map_colored_path = os.path.join(os.getcwd(), 'world_map_colored.npy')
+world_map_colored = np.load(world_map_colored_path)
 
-world_map_img_path = os.path.join(os.getcwd(), 'world_map.png')
-world_map = Image.fromarray(world_map_img, "RGB")
+world_map = Image.fromarray(world_map_colored, "RGB")
 
 pygame.display.init()
 screen = pygame.display.set_mode((win_size, win_size), pygame.RESIZABLE)
 
 world_surface = pygame.Surface((master_dim, master_dim))
-world_surface = pygame.surfarray.make_surface(world_map_img.transpose(1,0,2))
+world_surface = pygame.surfarray.make_surface(world_map_colored.transpose(1,0,2))
 
 class Camera:
     def __init__(self,width, height):
@@ -75,7 +80,7 @@ def spawn_location(world_map_npy):
 
 def can_move(x,y):
     
-    terrain_id = world_map_npy[y, x]
+    terrain_id = world_map_tid_npy[y, x]
 
     if terrain_id in [0,1,6]:
         return False
@@ -126,7 +131,7 @@ class Protagonist:
     def draw(self, surface, camera):
         surface.blit(self.image, (self.rect.x - camera.rect.x, self.rect.y - camera.rect.y))
 
-spawn_x, spawn_y = spawn_location(world_map_npy)
+spawn_x, spawn_y = spawn_location(world_map_tid_npy)
 Prot1 = Protagonist(spawn_x , spawn_y)
 
 minimap_surface = pygame.image.load("world_map.png").convert()
