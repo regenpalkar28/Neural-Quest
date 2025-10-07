@@ -14,14 +14,16 @@ if img.shape[2] != 4:
     a = np.ones(b.shape, dtype=b.dtype)*255
     img = cv2.merge((b,g,r,a))
 
-BG_color = img[(10,5)]
+BG_region = img[0:10, 0:10, :3].astype(np.float32)
+BG_color = BG_region.mean(axis=(0,1))
 
-lower = BG_color[:3] - 20
-upper = BG_color[:3] + 20
+diff = img[:, :, :3].astype(np.float32) - BG_color
+dist = np.linalg.norm(diff, axis=2)
 
-mask = cv2.inRange(img[:,:,:3], lower, upper)
+tolerance = 30  
+mask = dist < tolerance
 
-img[:,:,3][mask==255] = 0
+img[mask, 3] = 0
 
 cv2.imwrite(prot_sprite, img)
 print("\nBackground of protagonist.png removed.")

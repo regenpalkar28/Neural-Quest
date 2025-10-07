@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 import json
 import pixellab
-import NPC_info
 
 load_dotenv()
 PIXEL_KEY = os.getenv("PIXELLABKEY")
@@ -15,7 +14,7 @@ NPC_path = os.path.join(character_path, 'NPC.json')
 with open(NPC_path, "r") as f:
     NPC_data = json.load(f)
 
-char_num = NPC_info.character_num
+char_num = 5
 count = 1
 
 for NPC in NPC_data:

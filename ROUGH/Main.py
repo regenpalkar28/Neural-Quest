@@ -7,9 +7,9 @@ from PIL import Image
 
 venv_python = os.path.join(sys.prefix, 'Scripts', 'python.exe')
 
-print("Generating World..")
-subprocess.run([venv_python, 'world_generator.py'], check=True)
-print("World Generated")
+# print("Generating World..")
+# subprocess.run([venv_python, 'world_generator.py'], check=True)
+# print("World Generated")
 
 # print("\nTaking User Input for Protagonist..")
 # subprocess.run([venv_python, 'Protagonist_User_Input.py'], check=True)
@@ -18,25 +18,25 @@ print("World Generated")
 # subprocess.run([venv_python, 'Prot_Info_Complete.py'], check=True)
 
 # print("\nGenerating Sprite for Protagonist...")
-# subprocess.run([venv_python, 'Protagonist_SpriteCopy.py'], check=True)
-# uncomment the above to demonstrate a fresh image generation.
+# subprocess.run([venv_python, 'Protagonist_SpritePixelLab.py'], check=True)
+# # uncomment the above to demonstrate a fresh image generation.
 
 # print("\n Removing Background Color..")
 # subprocess.run([venv_python, 'Prot_BG_remove.py'], check=True)
 
-# generating initial storyline 
+# # generating initial storyline 
 # subprocess.run([venv_python, 'InitialStoryline.py'], check=True)
 
-#generating character data
+# # generating character data
 # subprocess.run([venv_python, 'NPC_info.py'], check=True)
 # print("Generated character data")
 
-# generating character sprites
+# # generating character sprites
 # subprocess.run([venv_python, 'NPCSprites.py'], check=True)
 # print("Generated character Images")
-#keep the above uncommented to demonstrate a fresh image generation
+# # keep the above uncommented to demonstrate a fresh image generation
 
-subprocess.run([venv_python, 'NPC_BG_remove.py'], check=True)
+# subprocess.run([venv_python, 'NPC_BG_remove.py'], check=True)
 
 master_dim = 12000
 win_size = 600
@@ -49,7 +49,7 @@ world_map_tid_npy = np.load(world_map_npy_path)
 world_map_colored_path = os.path.join(os.getcwd(), 'world_map_colored.npy')
 world_map_colored = np.load(world_map_colored_path)
 
-world_map = Image.fromarray(world_map_colored, "RGB")
+world_map = Image.fromarray(world_map_colored)
 
 pygame.display.init()
 screen = pygame.display.set_mode((win_size, win_size), pygame.RESIZABLE)
@@ -130,9 +130,34 @@ class Protagonist:
         
     def draw(self, surface, camera):
         surface.blit(self.image, (self.rect.x - camera.rect.x, self.rect.y - camera.rect.y))
+               
+NPC_IMG = []
+char_num = 5
+for i in range(char_num):
+    NPC_IMG.append(os.path.join(os.getcwd(), 'Characters', f'NPC_{i+1}.png'))
 
+class NPC:
+    def __init__(self, x,y, id):
+        self.width = int(win_size*0.25)
+        self.height = int(win_size*0.25)
+        self.size = (self.width, self.height)
+
+        self.img = pygame.image.load(NPC_IMG[id-1]).convert_alpha()
+        self.rect = self.img.get_rect(topleft = (x,y))
+    def draw(self, surface, camera):
+        if self.rect.colliderect(camera.rect):
+            surface.blit(self.img, (self.rect.x - camera.rect.x, self.rect.y - camera.rect.y))
+    
 spawn_x, spawn_y = spawn_location(world_map_tid_npy)
 Prot1 = Protagonist(spawn_x , spawn_y)
+NPC_Spawn = {}
+
+for i in range(char_num):
+    x, y = spawn_location(world_map_tid_npy) 
+    print(f"NPC {i+1} at ",x,y) 
+    npc = NPC(x, y, i+1)                     
+    NPC_Spawn[f'NPC_{i+1}'] = npc 
+        
 
 minimap_surface = pygame.image.load("world_map.png").convert()
 minimap_surface = pygame.transform.scale(minimap_surface, (minimap_size, minimap_size))
@@ -175,9 +200,14 @@ while True:
 
     screen.blit(visible_surface, (0,0))
     Prot1.draw(screen, camera)
-
+    for npc in NPC_Spawn.values():
+        npc.draw(screen, camera)
     minimap_copy = minimap_surface.copy()
     draw_viewport(minimap_copy, camera)
+    for npc in NPC_Spawn.values():
+        npc_x = npc.rect.x * minimap_size / master_dim
+        npc_y = npc.rect.y * minimap_size / master_dim
+        pygame.draw.circle(minimap_copy, (0, 255, 0), (int(npc_x), int(npc_y)), 3)
     screen.blit(minimap_copy, (win_size - minimap_size - 10, 10))
     
     pygame.display.flip()
