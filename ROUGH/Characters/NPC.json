@@ -1,0 +1,62 @@
+[
+    {
+        "name": "Elder Thalos",
+        "role": "guides RegP with cryptic riddles about the path to Eldoria",
+        "personality": "gentle",
+        "appearance": {
+            "age": "82",
+            "gender": "male",
+            "clothes": "tattered brown robe",
+            "weapon": "staff of ember",
+            "expression": "thoughtful"
+        }
+    },
+    {
+        "name": "Mira the Mist Witch",
+        "role": "tests RegP at the fog\u2011shrouded barrier, offering magical challenges",
+        "personality": "aggressive",
+        "appearance": {
+            "age": "45",
+            "gender": "female",
+            "clothes": "flowing silver cloak",
+            "weapon": "enchanted dagger",
+            "expression": "smirking"
+        }
+    },
+    {
+        "name": "Sir Caldor",
+        "role": "provides a battered shield and counsel to RegP after being stranded",
+        "personality": "helpful",
+        "appearance": {
+            "age": "38",
+            "gender": "male",
+            "clothes": "scrap armor",
+            "weapon": "rusted sword",
+            "expression": "determined"
+        }
+    },
+    {
+        "name": "Korren the Raven",
+        "role": "delivers whispered secrets about hidden routes on the island",
+        "personality": "clever",
+        "appearance": {
+            "age": "5",
+            "gender": "male",
+            "clothes": "none",
+            "weapon": "none",
+            "expression": "watchful"
+        }
+    },
+    {
+        "name": "Sylara, Spirit of the Isle",
+        "role": "bestows a blessing that steadies RegP's resolve before the final ascent",
+        "personality": "serene",
+        "appearance": {
+            "age": "unknown",
+            "gender": "female",
+            "clothes": "glowing veil",
+            "weapon": "wind",
+            "expression": "calm"
+        }
+    }
+]

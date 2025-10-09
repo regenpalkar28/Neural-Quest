@@ -4,6 +4,14 @@ import subprocess
 import pygame
 import numpy as np
 from PIL import Image
+import json
+from dotenv import load_dotenv
+from openai import OpenAI
+from huggingface_hub import login
+
+load_dotenv()
+hf_token = os.getenv("HF_TOKEN")
+login(hf_token)
 
 venv_python = os.path.join(sys.prefix, 'Scripts', 'python.exe')
 
@@ -41,7 +49,9 @@ venv_python = os.path.join(sys.prefix, 'Scripts', 'python.exe')
 master_dim = 12000
 win_size = 600
 bp_size = 60
-minimap_size = win_size*0.3     
+minimap_size = win_size*0.3
+
+text_panel_width = 200
 
 world_map_npy_path = os.path.join(os.getcwd(), 'world_map.npy')
 world_map_tid_npy = np.load(world_map_npy_path)
@@ -52,7 +62,7 @@ world_map_colored = np.load(world_map_colored_path)
 world_map = Image.fromarray(world_map_colored)
 
 pygame.display.init()
-screen = pygame.display.set_mode((win_size, win_size), pygame.RESIZABLE)
+screen = pygame.display.set_mode((win_size+text_panel_width, win_size), pygame.RESIZABLE)
 
 world_surface = pygame.Surface((master_dim, master_dim))
 world_surface = pygame.surfarray.make_surface(world_map_colored.transpose(1,0,2))
@@ -97,8 +107,11 @@ def draw_viewport(minimap, camera):
     )
     pygame.draw.rect(minimap, (255,0,0), rect, 2)
 
+with open("Characters/protagonist_info.json", "r", encoding="utf-8") as f:
+    protagonist_info = json.load(f)
+
 class Protagonist:
-    def __init__(self, x,y):
+    def __init__(self, x,y, info):
         self.width = int(win_size*0.2)
         self.height = int(win_size*0.2)
         self.size = (self.width, self.height)
@@ -113,6 +126,7 @@ class Protagonist:
         self.speed = 1
         self.facing = "left"
     
+        self.info = info
     def move(self, dx=0, dy=0):
 
         if can_move(self.rect.x + self.width//2 + dx, self.rect.y + self.height + dy):
@@ -137,32 +151,121 @@ for i in range(char_num):
     NPC_IMG.append(os.path.join(os.getcwd(), 'Characters', f'NPC_{i+1}.png'))
 
 class NPC:
-    def __init__(self, x,y, id):
+    def __init__(self, x,y, id, npc_data):
         self.width = int(win_size*0.25)
         self.height = int(win_size*0.25)
         self.size = (self.width, self.height)
 
         self.img = pygame.image.load(NPC_IMG[id-1]).convert_alpha()
         self.rect = self.img.get_rect(topleft = (x,y))
+        self.name = npc_data['name']
+        self.role = npc_data['role']
+        self.personality = npc_data['personality']
+        self.appearance = npc_data['appearance']
+
     def draw(self, surface, camera):
         if self.rect.colliderect(camera.rect):
             surface.blit(self.img, (self.rect.x - camera.rect.x, self.rect.y - camera.rect.y))
     
 spawn_x, spawn_y = spawn_location(world_map_tid_npy)
-Prot1 = Protagonist(spawn_x , spawn_y)
-NPC_Spawn = {}
+Prot1 = Protagonist(spawn_x , spawn_y, protagonist_info)
 
-for i in range(char_num):
+NPC_Spawn = {}
+npc_info_path = os.path.join(os.getcwd(), 'Characters', 'NPC.json')
+
+with open(npc_info_path, "r", encoding='utf-8') as f:
+      npc_info = json.load(f)
+
+for i,npc_data in enumerate(npc_info):
     x, y = spawn_location(world_map_tid_npy) 
-    print(f"NPC {i+1} at ",x,y) 
-    npc = NPC(x, y, i+1)                     
-    NPC_Spawn[f'NPC_{i+1}'] = npc 
+    print(f"{npc_data['name']} at ",x,y) 
+    npc = NPC(x, y, i+1, npc_data)                     
+    NPC_Spawn[f'NPC_{i+1}'] = npc
         
 
 minimap_surface = pygame.image.load("world_map.png").convert()
 minimap_surface = pygame.transform.scale(minimap_surface, (minimap_size, minimap_size))
 
+class storyline:
+    def __init__(self, npc_sequence, llm, protagonist_info, storyfile="story.txt"):
+        self.npc_sequence = npc_sequence
+        self.current_idx = 0
+        self.llm = llm
+        self.protagonist_info = protagonist_info
+        self.storyfile = storyfile
 
+        self.current_story = ""
+
+    def check_trigger(self, protagonist):
+        if self.current_idx >= len(self.npc_sequence):
+            return
+        current_npc = self.npc_sequence[self.current_idx]
+        next_npc = self.npc_sequence[self.current_idx + 1] if self.current_idx + 1 < len(self.npc_sequence) else None
+
+        if protagonist.rect.colliderect(current_npc.rect):
+            print(f"Protagonist collided with {current_npc.name}")
+            self.generate_npc_mission(current_npc, next_npc)
+            self.current_idx += 1
+
+            with open(self.storyfile, "r", encoding="utf-8"):
+                self.current_story = f.read()
+
+    def generate_npc_mission(self, npc, npc_next):
+        with open(self.storyfile, "r", encoding='utf-8') as f:
+            story = f.read()
+    
+        prompt = f"""
+        "{story}"
+
+        Continue the fantasy kingdom story. Remember that this encounter takes place on an island. 
+
+        They meet {npc.name}, a {npc.appearance['age']}-year old {npc.appearance['gender']}, who {npc.role}.
+        Describe this encounter in 30-50 words, keeping the story continuous.
+        """
+        if npc_next:
+            prompt += f"\nAt the end, the protagonist should be told to meet {npc_next.name}, a {npc_next.role}."
+        response = self.llm.chat.completions.create(
+            model="openai/gpt-oss-120b:cerebras",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        story_part = response.choices[0].message.content
+        self.current_story = story_part
+
+        with open(self.storyfile, "a", encoding="utf-8") as f:
+           f.write("\n" + story_part)
+        
+def text_render(surface, text, x,y,width, font, color=(255,255,255)):
+    words = text.split(' ')
+    lines = []
+    current_line = ""
+    for word in words:
+        test = current_line + word
+        if font.size(test)[0] < width:
+            current_line = test
+        else:
+            lines.append(current_line)
+            current_line = word + " "
+    lines.append(current_line)
+
+    for i, line in enumerate(lines):
+        text_surface = font.render(line, True, color)
+        surface.blit(text_surface, (x, y + i * (font.get_height() + 4)))
+
+npc_sequence = [npc for npc in NPC_Spawn.values()]
+storyline_instance = storyline(
+    npc_sequence=npc_sequence,
+    llm = OpenAI(
+    base_url="https://router.huggingface.co/v1",api_key=hf_token),
+    protagonist_info=protagonist_info,
+    storyfile="story.txt"
+)
+
+storyfile = "story.txt"
+with open(storyfile, "r", encoding="utf-8") as f:
+    story_text = f.read()
+
+
+# MAIN LOOP
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -199,9 +302,12 @@ while True:
     visible_surface = world_surface.subsurface(source_visible_rect)
 
     screen.blit(visible_surface, (0,0))
+
+
     Prot1.draw(screen, camera)
     for npc in NPC_Spawn.values():
         npc.draw(screen, camera)
+
     minimap_copy = minimap_surface.copy()
     draw_viewport(minimap_copy, camera)
     for npc in NPC_Spawn.values():
@@ -210,4 +316,11 @@ while True:
         pygame.draw.circle(minimap_copy, (0, 255, 0), (int(npc_x), int(npc_y)), 3)
     screen.blit(minimap_copy, (win_size - minimap_size - 10, 10))
     
+    storyline_instance.check_trigger(Prot1)
+    # text 
+    pygame.draw.rect(screen, (20, 20, 20), (win_size, 0, text_panel_width, win_size))  
+    pygame.draw.rect(screen, (100, 100, 100), (win_size, 0, text_panel_width, win_size), 2)
+    text_font = pygame.font.SysFont("constantia", 16)
+    text_render(screen, storyline_instance.current_story, win_size + 10, 10, text_panel_width - 20, text_font)
+
     pygame.display.flip()
