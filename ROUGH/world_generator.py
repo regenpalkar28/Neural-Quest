@@ -153,7 +153,7 @@ TERRAIN_IMG = {
 world_image = TERRAIN_COLORS[upscaled_map]
 np.save('world_map_colored.npy', world_image)
 
-world_img_file = Image.fromarray(world_image, "RGB")
+world_img_file = Image.fromarray(world_image)
 world_img_file.save("world_map.png")
 
 master_image = Image.new("RGB", (master_dim, master_dim))
