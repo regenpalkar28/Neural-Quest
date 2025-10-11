@@ -15,9 +15,9 @@
 <summary>Table of Contents</summary>
 
 - [Description](#description)
--[Main Parts](#Main part of project)
--[Phase of world](#phases)
--[ocean formation logic](#Ocean Formation Logic)
+- [Main Parts](#Main part of project)
+- [Phase of world](#phases)
+- [ocean formation logic](#Ocean Formation Logic)
 - [Links](#links)
 - [Tech Stack](#tech-stack)
 - [Progress](#progress)
@@ -145,6 +145,7 @@ This project comes under the Generative AI category and contributes to research 
 
 - [Vidhhi Rohira](https://github.com/vidhirohira):
 - [Aadit Pujari](
+
 
 
 
