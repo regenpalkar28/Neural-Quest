@@ -15,6 +15,9 @@
 <summary>Table of Contents</summary>
 
 - [Description](#description)
+-[Main Parts](#Main part of project)
+-[Phase of world](#phases)
+-[ocean formation logic](#Ocean Formation Logic)
 - [Links](#links)
 - [Tech Stack](#tech-stack)
 - [Progress](#progress)
@@ -85,7 +88,7 @@ Phase 3: Island formation
       -  Result: Higher terrain at center, ocean at edges
 
 
-🌊 Ocean Formation Logic
+##🌊 Ocean Formation Logic
 
 The ocean regions in the generated world are formed through a combination of Perlin noise and a radial falloff function.
 Perlin noise first generates smooth elevation values between 0 (low) and 1 (high), representing the natural terrain height variations such as plains, hills, and mountains.
@@ -142,5 +145,6 @@ This project comes under the Generative AI category and contributes to research 
 
 - [Vidhhi Rohira](https://github.com/vidhirohira):
 - [Aadit Pujari](
+
 
 
