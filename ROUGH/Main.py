@@ -110,6 +110,8 @@ def draw_viewport(minimap, camera):
 with open("Characters/protagonist_info.json", "r", encoding="utf-8") as f:
     protagonist_info = json.load(f)
 
+epilogue_display_notmove = False
+
 class Protagonist:
     def __init__(self, x,y, info):
         self.width = int(win_size*0.2)
@@ -123,13 +125,13 @@ class Protagonist:
         self.image = self.left  # current orientation
         self.rect = self.image.get_rect(topleft = (x,y))
 
-        self.speed = 2
+        self.speed = 4
         self.facing = "left"
     
         self.info = info
     def move(self, dx=0, dy=0):
 
-        if can_move(self.rect.x + self.width//2 + dx, self.rect.y + self.height + dy):
+        if can_move(self.rect.x + self.width//2 + dx, self.rect.y + self.height + dy) and not epilogue_display_notmove:
 
             self.rect.x += dx
             self.rect.y += dy
@@ -202,22 +204,41 @@ class storyline:
         self.dialogue_active = False
         self.dialogue_text = ""
         self.ok_button_rect = pygame.Rect(220, 440, 80, 30)
+        
+        self.epilogue_pos = None
+        self.epilogue_display = False
+        self.epilogue_start = False
+        self.epilogue_text = ""
 
         self.npc_states = {
             f"NPC_{i}": {
                 "dialogue": None,          # what the NPC says (left-side box)
-                "mission_text": None,      # story/narration (right panel)
+                "story_text": None,      # story/narration (right panel)
                 "is_generating": False,    # if LLM generation is ongoing
                 "is_ready": False,          # if this NPC’s dialogue/story is generated
-                "has_been_triggered": False
+                "has_been_triggered": False # if this NPC has already been triggered
             }
             for i in range(1, char_num + 1)
         }
         
     def check_trigger(self, protagonist):
         if self.current_idx >= len(self.npc_sequence):
-            return
+            self.dialogue_active = False
+            self.current_story = "Make your way to the purple area indicated in the minimap."
+            if not self.epilogue_display:
+                self.epilogue_pos = spawn_location(world_map_tid_npy)
+                self.epilogue_display = True
+        
+            if self.epilogue_display and not self.epilogue_start and self.epilogue_pos:
+                epx, epy = self.epilogue_pos
+                ep_rect = pygame.Rect(epx, epy, bp_size, bp_size)
+                if(protagonist.rect.colliderect(ep_rect)):
+                    print("Epilogue location reached.")
+                    self.epilogue_start = True
+                    epilogue_display_notmove = True
+                    self.generate_epilogue(screen)
 
+            return 
         current_npc = self.npc_sequence[self.current_idx]
         next_npc = (
             self.npc_sequence[self.current_idx + 1] 
@@ -311,22 +332,53 @@ class storyline:
         # parsing raw output
         dialogue_text = ""
         story_text = ""
-
+        
         dialogue_start = raw_op.index("1. DIALOGUE")
         story_start = raw_op.index("2. STORY")
 
         dialogue_text = raw_op[dialogue_start + len("1. DIALOGUE"):story_start].strip()
         story_text = raw_op[story_start + len("2. STORY"):].strip(" :\n")
 
-        npc_state["mission_text"] = story_text
+        # dialogue_text = "Dummy Text for dialogue"
+        # story_text = "Dummy text for story"
+
+        npc_state["story_text"] = story_text
         npc_state["dialogue"] = dialogue_text
         npc_state["is_ready"] = True
         self.dialogue_text = dialogue_text
         self.current_story = story_text
 
-        with open(self.storyfile, "a", encoding="utf-8") as f:
-            f.write("\n" + story_text)
+        # with open(self.storyfile, "a", encoding="utf-8") as f:
+        #     f.write("\n" + story_text)
 
+    def generate_epilogue(self, screen=screen):
+        with open(self.storyfile, "r", encoding="utf-8") as f:
+            full_story = f.read()
+        
+        prot_name = self.protagonist_info["name"]
+        prot_role = self.protagonist_info["role"]
+
+        prompt = f""" 
+        The following is a complete story told through several encounters
+
+        "{full_story}"
+
+        Now, write a small epilogue section, of about (60-80 words) that concludes the story of {prot_name}, the {prot_role}.
+        Keep it reflective, emotionally satisfying, and continuous with the events above.
+        Use third-person narration only (no dialogues).
+        """
+
+        response = self.llm.chat.completions.create(
+        model="openai/gpt-oss-120b:cerebras",
+        messages=[{"role": "user", "content": prompt}]
+        )
+        epilogue_text = response.choices[0].message.content
+
+        # epilogue_text = "dummy epilogue text"
+        with open(self.storyfile, "a", encoding="utf-8") as f:
+            f.write("\n\nEPILOGUE:\n" + epilogue_text)
+        self.epilogue_text = epilogue_text
+                
 def text_render(surface, text, x, y, width, font, color=(255, 255, 255)):
     words = text.split(' ')
     lines = []
@@ -350,8 +402,7 @@ def text_render(surface, text, x, y, width, font, color=(255, 255, 255)):
 npc_sequence = [npc for npc in NPC_Spawn.values()]
 storyline_instance = storyline(
     npc_sequence=npc_sequence,
-    llm = OpenAI(
-    base_url="https://router.huggingface.co/v1",api_key=hf_token),
+    llm = OpenAI(base_url="https://router.huggingface.co/v1",api_key=hf_token),
     protagonist_info=protagonist_info,
     storyfile="story.txt"
 )
@@ -406,15 +457,29 @@ while True:
 
     minimap_copy = minimap_surface.copy()
     draw_viewport(minimap_copy, camera)
+    #drawing all NPC locations in minimap
     for npc in NPC_Spawn.values():
         npc_x = npc.rect.x * minimap_size / master_dim
         npc_y = npc.rect.y * minimap_size / master_dim
-        pygame.draw.circle(minimap_copy, (0, 255, 0), (int(npc_x), int(npc_y)), 3)
+        pygame.draw.circle(minimap_copy, (0, 255, 0), (int(npc_x), int(npc_y)), 3) # all NPC circles
+    #drawing current NPC location in minimap
     if storyline_instance.current_idx < len(storyline_instance.npc_sequence):
         next_npc = storyline_instance.npc_sequence[storyline_instance.current_idx]
         next_x = next_npc.rect.x * minimap_size / master_dim
         next_y = next_npc.rect.y * minimap_size / master_dim
-        pygame.draw.circle(minimap_copy, (235, 235, 52), (int(next_x), int(next_y)), 5)
+        pygame.draw.circle(minimap_copy, (235, 235, 52), (int(next_x), int(next_y)), 5) # current NPC circle
+    
+    #drawing epilogue location on minimap
+    if storyline_instance.epilogue_display and not storyline_instance.epilogue_start and storyline_instance.epilogue_pos:
+        epx, epy = storyline_instance.epilogue_pos
+        epi_x = epx * minimap_size / master_dim
+        epi_y = epy * minimap_size / master_dim
+        pygame.draw.circle(minimap_copy, (77, 36, 143), (int(epi_x), int(epi_y)), 5) 
+
+        message_font = pygame.font.SysFont("constantia", 16)
+        message_text = "Make your way to the purple zone indicated in minimap."
+        text_render(screen, message_text, win_size + 10, 10, text_panel_width - 20, message_font)
+    
     screen.blit(minimap_copy, (win_size - minimap_size - 10, 10))
     
     storyline_instance.check_trigger(Prot1)
@@ -430,6 +495,20 @@ while True:
         if npc_state["is_generating"]:
             generating_text = text_font.render("Generating response...", True, (255, 0, 0))
             screen.blit(generating_text, (win_size + 10, 10))
+
+    if storyline_instance.epilogue_start:
+        ep_text = storyline_instance.epilogue_text
+        screen_w, screen_h = screen.get_width(), screen.get_height()
+        rect_w, rect_h = int(screen_w * 0.6), int(screen_h * 0.4)
+        rect_x, rect_y = (screen_w - rect_w)//2, (screen_h - rect_h)//2
+        ep_rect = pygame.Rect(rect_x, rect_y, rect_w, rect_h)
+
+        pygame.draw.rect(screen, (30, 30, 30), ep_rect)
+        pygame.draw.rect(screen, (200, 200, 200), ep_rect, 3)  # border
+
+        text_font = pygame.font.SysFont("constantia", 18)
+        text_render(screen, ep_text, rect_x + 10, rect_y + 10, rect_w - 20, text_font)
+
     if storyline_instance.dialogue_active:
         dialogue_rect = pygame.Rect(50, 350, 350, 120)  
         pygame.draw.rect(screen, (30, 30, 30), dialogue_rect)
