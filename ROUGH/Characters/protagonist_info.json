@@ -1,0 +1,11 @@
+{
+    "name": "RegP",
+    "role": "Ninja",
+    "appearance": {
+        "age": "20",
+        "gender": "male",
+        "clothes": "black jumpsuit, red bandana",
+        "weapon": "katana",
+        "expression": "determined"
+    }
+}
