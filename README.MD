@@ -49,7 +49,7 @@ Key Features:
 3]   Interactive NPCs: NPCs have distinct personalities and roles, guiding the player through missions and story events. They respond dynamically depending on the player’s actions and location in the world.
 
 
-###Main Parts of Project
+Main Parts of Project
 
 -Procedural world generation
 
@@ -68,7 +68,7 @@ Efficient Storage: Tile-based generation with upscaling
 Deterministic: Can reproduce worlds with same random seed
 
 
-##Phases for World Generation:
+Phases for World Generation:
 
 Phase 1: Initialization. Set world parameters (size, tile count, noise scale)
         - Create empty arrays for noise and terrain data        │
@@ -88,7 +88,7 @@ Phase 3: Island formation
       -  Result: Higher terrain at center, ocean at edges
 
 
-##🌊 Ocean Formation Logic
+🌊 Ocean Formation Logic
 
 The ocean regions in the generated world are formed through a combination of Perlin noise and a radial falloff function.
 Perlin noise first generates smooth elevation values between 0 (low) and 1 (high), representing the natural terrain height variations such as plains, hills, and mountains.
@@ -145,6 +145,7 @@ This project comes under the Generative AI category and contributes to research 
 
 - [Vidhhi Rohira](https://github.com/vidhirohira):
 - [Aadit Pujari](
+
 
 
 
