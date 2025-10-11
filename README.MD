@@ -45,6 +45,61 @@ Key Features:
 
 3]   Interactive NPCs: NPCs have distinct personalities and roles, guiding the player through missions and story events. They respond dynamically depending on the player’s actions and location in the world.
 
+
+###Main Parts of Project
+
+-Procedural world generation
+
+The world generation system creates procedurally generated island environments using Perlin Noise with radial falloff. Each generated world is a unique 12,000×12,000 pixel island with 7 distinct terrain types, ensuring no two playthroughs are identical.
+Key Features
+
+- Procedural Generation:  Uses multi-octave Perlin noise for natural terrain
+
+- Island Formation: Circular falloff creates realistic island geography
+
+-7 Terrain Types: From deep ocean to mountain peaks
+
+- Multiple Output Formats: Terrain IDs, colored maps, and tiled artwork
+
+Efficient Storage: Tile-based generation with upscaling
+Deterministic: Can reproduce worlds with same random seed
+
+
+##Phases for World Generation:
+
+Phase 1: Initialization. Set world parameters (size, tile count, noise scale)
+        - Create empty arrays for noise and terrain data        │
+        - Initialize gradient grid (201×201 random vectors)  
+
+Phase 2: For each tile (200×200 grid):                          │
+       - We will  Calculate base Perlin noise                        
+        - Apply octave layering (5 layers)   
+        - Normalize values to [0, 1]                       
+        - Store in noise_map array
+
+Phase 3: Island formation
+      - For each tile:    
+      -  we calculate first where is center of world located
+      -  We willCalculate distance from world center  and find  falloff  Compute falloff: max(0, 1 - distance)              │
+      -  Apply falloff: final = noise × falloff             │
+      -  Result: Higher terrain at center, ocean at edges
+
+
+🌊 Ocean Formation Logic
+
+The ocean regions in the generated world are formed through a combination of Perlin noise and a radial falloff function.
+Perlin noise first generates smooth elevation values between 0 (low) and 1 (high), representing the natural terrain height variations such as plains, hills, and mountains.
+To ensure that the world has a central landmass surrounded by ocean boundaries, a falloff factor is applied based on the distance of each point from the map center.
+This value gradually decreases towards the edges, effectively reducing the terrain height near corners and edges.
+
+After this adjustment, the normalized height map is classified into terrain types (e.g., ocean, sand, grass, rock, snow) using threshold values.
+
+Points with very low height values (typically < 0.05) are marked as ocean, creating smooth and realistic coastlines around the land area.
+
+As a result, the generated map naturally evolves into an island-like world, where the central region features elevated land and the outer boundaries transition into deep ocean — mimicking real-world geographical formations.
+
+
+
 ## 🔗Links
 
 - [GitHub Repository](https://github.com/regenpalkar28/Neural-quest)
@@ -87,4 +142,5 @@ This project comes under the Generative AI category and contributes to research 
 
 - [Vidhhi Rohira](https://github.com/vidhirohira):
 - [Aadit Pujari](
+
 
