@@ -19,32 +19,32 @@ print("Generating World..")
 subprocess.run([venv_python, 'world_generator.py'], check=True)
 print("World Generated")
 
-# print("\nTaking User Input for Protagonist..")
-# subprocess.run([venv_python, 'Protagonist_User_Input.py'], check=True)
+print("\nTaking User Input for Protagonist..")
+subprocess.run([venv_python, 'Protagonist_User_Input.py'], check=True)
 
-# print("\nCleaning and completing Information..")
-# subprocess.run([venv_python, 'Prot_Info_Complete.py'], check=True)
+print("\nCleaning and completing Information..")
+subprocess.run([venv_python, 'Prot_Info_Complete.py'], check=True)
 
-# print("\nGenerating Sprite for Protagonist...")
-# subprocess.run([venv_python, 'Protagonist_SpritePixelLab.py'], check=True)
-# # uncomment the above to demonstrate a fresh image generation.
+print("\nGenerating Sprite for Protagonist...")
+subprocess.run([venv_python, 'Protagonist_SpritePixelLab.py'], check=True)
+# uncomment the above to demonstrate a fresh image generation.
 
-# print("\n Removing Background Color..")
-# subprocess.run([venv_python, 'Prot_BG_remove.py'], check=True)
+print("\n Removing Background Color..")
+subprocess.run([venv_python, 'Prot_BG_remove.py'], check=True)
 
-# # generating initial storyline 
-# subprocess.run([venv_python, 'InitialStoryline.py'], check=True)
+# generating initial storyline 
+subprocess.run([venv_python, 'InitialStoryline.py'], check=True)
 
-# # generating character data
-# subprocess.run([venv_python, 'NPC_info.py'], check=True)
-# print("Generated character data")
+# generating character data
+subprocess.run([venv_python, 'NPC_info.py'], check=True)
+print("Generated character data")
 
-# # generating character sprites
-# subprocess.run([venv_python, 'NPCSprites.py'], check=True)
-# print("Generated character Images")
-# # keep the above uncommented to demonstrate a fresh image generation
+# generating character sprites
+subprocess.run([venv_python, 'NPCSprites.py'], check=True)
+print("Generated character Images")
+# keep the above uncommented to demonstrate a fresh image generation
 
-# subprocess.run([venv_python, 'NPC_BG_remove.py'], check=True)
+subprocess.run([venv_python, 'NPC_BG_remove.py'], check=True)
 
 master_dim = 12000
 win_size = 600
@@ -262,7 +262,8 @@ class storyline:
                 # After generation
                 current_state["has_been_triggered"] = True
                 current_state["is_generating"] = False
-                self.dialogue_text = current_state.get("dialogue", "")
+                dialogue_from_state = current_state.get("dialogue", "")
+                self.dialogue_text = f"{current_npc.name}: {dialogue_from_state}"
                 self.current_idx += 1
         #Prot meets wrong NPC
         elif not current_state.get("is_generating", False) and not self.dialogue_active:
@@ -327,7 +328,7 @@ class storyline:
             messages=[{"role": "user", "content": prompt}]
         )
         raw_op = response.choices[0].message.content
-
+        print(raw_op)
         npc_state["is_generating"] = False
         # parsing raw output
         dialogue_text = ""
@@ -345,7 +346,8 @@ class storyline:
         npc_state["story_text"] = story_text
         npc_state["dialogue"] = dialogue_text
         npc_state["is_ready"] = True
-        self.dialogue_text = dialogue_text
+        self.dialogue_text = npc.name + dialogue_text
+        print(self.dialogue_text)
         self.current_story = story_text
 
         # with open(self.storyfile, "a", encoding="utf-8") as f:

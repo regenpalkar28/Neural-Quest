@@ -140,15 +140,6 @@ TERRAIN_COLORS = np.array([
     ], dtype=np.uint8)
 
 tiles_folder = os.path.join(os.getcwd(), 'MAPTILES')
-TERRAIN_IMG = {
-    0: os.path.join(tiles_folder, 'OCEAN.png'),
-    1: os.path.join(tiles_folder, 'SHALLOW.png'),
-    2: os.path.join(tiles_folder, 'SAND.png'),
-    3: os.path.join(tiles_folder, 'PLAINS.png'),
-    4: os.path.join(tiles_folder, 'HIGHLAND_PLAINS.png'),
-    5: os.path.join(tiles_folder, 'MOUNTAIN.png'),
-    6: os.path.join(tiles_folder, 'MOUNTAIN_PEAK.png')
-    }    
 
 world_image = TERRAIN_COLORS[upscaled_map]
 np.save('world_map_colored.npy', world_image)
@@ -158,19 +149,5 @@ world_img_file.save("world_map.png")
 
 master_image = Image.new("RGB", (master_dim, master_dim))
 
-loaded_tiles = {}
 
-for terrain_id, file_path in TERRAIN_IMG.items():
-    loaded_tiles[terrain_id] = Image.open(file_path).convert("RGB")
 
-for y in range(bp_num):
-    for x in range(bp_num):
-        terrain_id = world_map[y,x]
-
-        tile_image = loaded_tiles.get(terrain_id)
-        paste_x = x*bp_size
-        paste_y = y*bp_size
-
-        master_image.paste(tile_image, (paste_x, paste_y))
-
-master_image.save("world_map_tiled.png")
